@@ -1,0 +1,17 @@
+{
+    "name": "gulshat/hexlet-slim-example",
+    "description": "slim-example",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Gulshat\\HexletSlimExample\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Гульшат Нигматуллина",
+            "email": "nigma1918@mail.ru"
+        }
+    ],
+    "require": {}
+}
