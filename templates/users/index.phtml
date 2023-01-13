@@ -1,0 +1,10 @@
+<form>
+    <input type = "search" name="term">
+    <input type = "submit" value = "Search">
+</form>
+
+<ul>
+    <?php foreach($users as $user): ?>
+        <li><?= htmlspecialchars($user) ?></li>
+    <?php endforeach ?>
+</ul>
