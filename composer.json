@@ -3,6 +3,7 @@
     "description": "slim-example",
     "license": "MIT",
     "autoload": {
+        "files": ["src/Validator.php"],
         "psr-4": {
             "Gulshat\\HexletSlimExample\\": "src/"
         }
