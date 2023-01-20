@@ -54,6 +54,8 @@ $app->post('/users', function ($request, $response) {
 
         return $response->withRedirect('/users', 302);
     }
+
+    return $response->withStatus(422)->write(json_encode($errors));
 });
 
 $app->get('/users/new', function ($request, $response) {
