@@ -33,9 +33,10 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/users', function ($request, $response) {
 
+    $flash = $this->get('flash')->getMessages();
     $file = 'public/users.json';
     $users = json_decode(file_get_contents($file), true);
-    $params = ['users' => $users];
+    $params = ['users' => $users, 'flash' => $flash];
     return  $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('get users');
 
@@ -47,7 +48,7 @@ $app->post('/users', function ($request, $response) use ($router) {
     $errors = $validator->validate($user);
 
     if (count($errors) === 0) {
-        $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id,];
+        $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id];
 
         $file = 'public/users.json';
         $current = json_decode(file_get_contents($file), true);
@@ -55,7 +56,8 @@ $app->post('/users', function ($request, $response) use ($router) {
         $current = json_encode($current) . "\n";
         file_put_contents($file, $current);
 
-        var_dump($router->urlFor('get users'));
+        $this->get('flash')->addMessage('success', 'User was added successfully');
+
         return $response->withRedirect($router->urlFor('get users'), 302);
     }
 
@@ -65,18 +67,19 @@ $app->post('/users', function ($request, $response) use ($router) {
         'email' => $user['email'],
         'errors' => $errors
     ];
-    $this->get('flash'->addMessage('success', 'This is a message'));
+
     return $this->get('renderer')->render($response->withStatus(422), 'users/newUser.phtml', $params);
 })->setName('users');
-
 
 $app->get('/users/new', function ($request, $response) {
     $params = [
         'user' => ['nickname' => '', 'email' => ''],
         'errors' => []
     ];
+
     return  $this->get('renderer')->render($response, 'users/newUser.phtml', $params);
 })->setName('new user');
+
 
 $app->get('/users/{id}', function ($request, $response, $args) {
     $file = 'public/users.json';
@@ -89,6 +92,6 @@ $app->get('/users/{id}', function ($request, $response, $args) {
     }, $users);
 
     return $response->withStatus(404);
-});
+})->setName('new user');
 
 $app->run();
