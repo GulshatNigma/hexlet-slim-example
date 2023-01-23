@@ -20,6 +20,7 @@
         "slim/http": "^1.3",
         "slim/php-view": "^3.2",
         "php-di/php-di": "^6.4",
-        "tightenco/collect": "^8.83"
+        "tightenco/collect": "^8.83",
+        "slim/flash": "^0.4.0"
     }
 }

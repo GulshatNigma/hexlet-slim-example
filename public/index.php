@@ -7,12 +7,20 @@ use Slim\Views\PhpRenderer;
 use DI\Container;
 use Slim\Example\Validator;
 
+session_start();
+
 $container = new Container();
 $container->set('renderer', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
 });
 
-$app = AppFactory::createFromContainer($container);
+$container->set('flash', function () {
+    return new \Slim\Flash\Messages();
+});
+
+
+AppFactory::setContainer($container);
+$app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 
 $router = $app->getRouteCollector()->getRouteParser();
@@ -57,6 +65,7 @@ $app->post('/users', function ($request, $response) use ($router) {
         'email' => $user['email'],
         'errors' => $errors
     ];
+    $this->get('flash'->addMessage('success', 'This is a message'));
     return $this->get('renderer')->render($response->withStatus(422), 'users/newUser.phtml', $params);
 })->setName('users');
 
