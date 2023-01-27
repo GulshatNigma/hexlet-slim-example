@@ -32,11 +32,16 @@ $app->get('/', function ($request, $response) {
 
 
 $app->get('/users', function ($request, $response) {
-
     $flash = $this->get('flash')->getMessages();
     $file = 'public/users.json';
     $users = json_decode(file_get_contents($file), true);
-    $params = ['users' => $users, 'flash' => $flash];
+    $search = $request->getQueryParams('term');
+
+    $filterUsers = collect($users)->filter(function ($user) use ($search) {
+        return str_starts_with(strtolower($user['nickname']), strtolower($search['term'])) !== false;
+    })->toArray();
+
+    $params = ['users' => $filterUsers, 'flash' => $flash];
     return  $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('get users');
 
@@ -51,9 +56,10 @@ $app->post('/users', function ($request, $response) use ($router) {
         $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id];
 
         $file = 'public/users.json';
+
         $current = json_decode(file_get_contents($file), true);
         $current[] = $params;
-        $current = json_encode($current) . "\n";
+        $current = json_encode($current);
         file_put_contents($file, $current);
 
         $this->get('flash')->addMessage('success', 'User was added successfully');
@@ -68,7 +74,7 @@ $app->post('/users', function ($request, $response) use ($router) {
         'errors' => $errors
     ];
 
-    return $this->get('renderer')->render($response->withStatus(422), 'users/newUser.phtml', $params);
+    return $this->get('renderer')->render($response->withStatus(422), 'users/new.phtml', $params);
 })->setName('users');
 
 $app->get('/users/new', function ($request, $response) {
@@ -77,7 +83,7 @@ $app->get('/users/new', function ($request, $response) {
         'errors' => []
     ];
 
-    return  $this->get('renderer')->render($response, 'users/newUser.phtml', $params);
+    return  $this->get('renderer')->render($response, 'users/new.phtml', $params);
 })->setName('new user');
 
 
@@ -93,5 +99,62 @@ $app->get('/users/{id}', function ($request, $response, $args) {
 
     return $response->withStatus(404);
 })->setName('new user');
+
+$app->get('/users/{id}/edit', function ($request, $response, $args) {
+    $id = $args['id'];
+
+    $users = json_decode(file_get_contents('public/users.json'), true);
+    $findUser = array_map(function ($user) use ($args, $response) {
+        if ($user['id'] === $args['id']) {
+            return $user;
+        }
+    }, $users);
+
+
+    $findUser = array_map(function ($user) use ($args, $response) {
+        if ($user['id'] === $args['id']) {
+            $params = ['id' => $user['id'], 'nickname' => $user['nickname'], 'email' => $user['email']];
+            return $this->get('renderer')->render($response, 'users/edit.phtml', $params);
+        }
+    }, $users);
+
+    return $response->withStatus(404);
+})->setName('update user form');
+
+$app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
+    $id = $args['id'];
+    $data = $request->getParsedBodyParam('id');
+
+    $validator = new Validator();
+    $errors = $validator->validate($data);
+
+    if (count($errors) === 0) {
+        $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id];
+
+        $file = 'public/users.json';
+
+        $current = json_decode(file_get_contents($file), true);
+        $current[] = $params;
+        $current = json_encode($current);
+        file_put_contents($file, $current);
+
+        $this->get('flash')->addMessage('success', 'User was added successfully');
+
+        return $response->withRedirect($router->urlFor('get users'), 302);
+    }
+
+    $params = [
+        'id' => $id,
+        'nickname' => $user['nickname'],
+        'email' => $user['email'],
+        'errors' => $errors
+    ];
+
+    return $this->get('renderer')->render($response->withStatus(422), 'users/new.phtml', $params);
+
+})->setName('update user');
+
+/*$app->delete('/users/{id}', function ($request, $response, $args) {
+})->setName('delete user');*/
 
 $app->run();

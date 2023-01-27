@@ -1,6 +1,7 @@
 <h1>Users</h1>
-
-
+<form action = '/users/new' method = 'get'>
+        <input type = "submit" value = "Create User">
+</form>
 <?php if (count($flash) > 0) : ?>
     <?php foreach ($flash as $messages) : ?>
         <?php foreach ($messages as $message) : ?>
@@ -9,9 +10,7 @@
     <?php endforeach ?>
 <?php endif ?>
 <hr>
-
-
-<form action = >
+<form action = '/users' method = 'get'>
     <input type = "search" name="term">
     <input type = "submit" value = "Search">
 </form>

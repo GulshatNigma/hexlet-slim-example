@@ -1,0 +1,23 @@
+<h1>Update the user</h1>
+<hr>
+    <input type="hidden" name="_METHOD" value="PATCH">
+    <div>
+        <label>
+            Nickname:
+            <input type="text" name="user[nickname]" value="<?= htmlspecialchars($course['nickname']) ?>">
+        </label>
+        <?php if (isset($errors['nickname'])): ?>
+            <div><?= $errors['nickname'] ?></div>
+        <?php endif ?>
+    </div>
+    <div>
+        <label>
+            Email:
+            <input type="email" name="user[email]" value="<?= htmlspecialchars($course['email']) ?>">
+        </label>
+        <?php if (isset($errors['email'])): ?>
+            <div><?= $errors['email'] ?></div>
+        <?php endif ?>
+    </div>
+    <input type="submit" name="Submit">
+</form>
