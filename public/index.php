@@ -98,18 +98,12 @@ $app->get('/users/{id}', function ($request, $response, $args) {
     }, $users);
 
     return $response->withStatus(404);
-})->setName('new user');
+});
 
 $app->get('/users/{id}/edit', function ($request, $response, $args) {
     $id = $args['id'];
 
     $users = json_decode(file_get_contents('public/users.json'), true);
-    $findUser = array_map(function ($user) use ($args, $response) {
-        if ($user['id'] === $args['id']) {
-            return $user;
-        }
-    }, $users);
-
 
     $findUser = array_map(function ($user) use ($args, $response) {
         if ($user['id'] === $args['id']) {
@@ -121,26 +115,30 @@ $app->get('/users/{id}/edit', function ($request, $response, $args) {
     return $response->withStatus(404);
 })->setName('update user form');
 
-$app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
-    $id = $args['id'];
-    $data = $request->getParsedBodyParam('id');
-
+$app->post('/users/{id}', function ($request, $response, $args) use ($router) {
+    $updateUser = $request->getParsedBodyParam('user');
+    $updateUser['id'] = $args['id'];
     $validator = new Validator();
-    $errors = $validator->validate($data);
+    $errors = $validator->validate($updateUser);
 
     if (count($errors) === 0) {
-        $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id];
 
         $file = 'public/users.json';
 
-        $current = json_decode(file_get_contents($file), true);
-        $current[] = $params;
-        $current = json_encode($current);
+        $users = json_decode(file_get_contents($file), true);
+        $currentnew = array_map(function ($user) use ($updateUser) {
+            if ($user['id'] === $updateUser['id']) {
+                $user['nickname'] = $updateUser['nickname'];
+                $user['email'] = $updateUser['email'];
+            }
+            return $user;
+        }, $users);
+        $current = json_encode($currentnew);
         file_put_contents($file, $current);
 
-        $this->get('flash')->addMessage('success', 'User was added successfully');
+        $this->get('flash')->addMessage('success', 'User was update successfully');
 
-        return $response->withRedirect($router->urlFor('get users'), 302);
+        return $response->withRedirect($router->urlFor('get users'));
     }
 
     $params = [

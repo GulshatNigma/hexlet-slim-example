@@ -1,10 +1,11 @@
 <h1>Update the user</h1>
 <hr>
+<form action="/users/<?= htmlspecialchars($id)?>" method="post">
     <input type="hidden" name="_METHOD" value="PATCH">
     <div>
         <label>
             Nickname:
-            <input type="text" name="user[nickname]" value="<?= htmlspecialchars($course['nickname']) ?>">
+            <input type="text" name="user[nickname]" value="<?= htmlspecialchars($user['nickname']) ?>">
         </label>
         <?php if (isset($errors['nickname'])): ?>
             <div><?= $errors['nickname'] ?></div>
@@ -13,7 +14,7 @@
     <div>
         <label>
             Email:
-            <input type="email" name="user[email]" value="<?= htmlspecialchars($course['email']) ?>">
+            <input type="email" name="user[email]" value="<?= htmlspecialchars($user['email']) ?>">
         </label>
         <?php if (isset($errors['email'])): ?>
             <div><?= $errors['email'] ?></div>
