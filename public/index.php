@@ -6,6 +6,7 @@ use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
 use DI\Container;
 use Slim\Example\Validator;
+use Slim\Middleware\MethodOverrideMiddleware;
 
 session_start();
 
@@ -22,6 +23,7 @@ $container->set('flash', function () {
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
+$app->add(MethodOverrideMiddleware::class);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
@@ -115,7 +117,7 @@ $app->get('/users/{id}/edit', function ($request, $response, $args) {
     return $response->withStatus(404);
 })->setName('update user form');
 
-$app->post('/users/{id}', function ($request, $response, $args) use ($router) {
+$app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
     $updateUser = $request->getParsedBodyParam('user');
     $updateUser['id'] = $args['id'];
     $validator = new Validator();
@@ -152,7 +154,18 @@ $app->post('/users/{id}', function ($request, $response, $args) use ($router) {
 
 })->setName('update user');
 
-/*$app->delete('/users/{id}', function ($request, $response, $args) {
-})->setName('delete user');*/
+$app->delete('/users/{id}', function ($request, $response, $args) use ($router) {
+    $id = $args['id'];
+
+    $file = 'public/users.json';
+    $users = json_decode(file_get_contents($file), true);
+
+    $deleteUser = array_filter($users, fn($user) => $user['id'] != $id);
+    $current = json_encode($deleteUser);
+    file_put_contents($file, $current);
+
+    $this->get('flash')->addMessage('success', 'Users has been deleted');
+    return $response->withRedirect($router->urlFor('get users'));
+})->setName('delete user');
 
 $app->run();
