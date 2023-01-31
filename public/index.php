@@ -114,7 +114,7 @@ $app->get('/users/{id}/edit', function ($request, $response, $args) {
 })->setName('update user form');
 
 $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
-    $updateUser = $request->getParsedBodyParam('users');
+    $updateUser = $request->getParsedBodyParam('user');
     $updateUser['id'] = $args['id'];
     $validator = new Validator();
     $errors = $validator->validate($updateUser);
@@ -128,38 +128,32 @@ $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
             }
             return $user;
         }, $users);
-        $current = json_encode($currentnew);
-        file_put_contents($file, $current);
+        $users = json_encode($currentnew);
 
         $this->get('flash')->addMessage('success', 'User was update successfully');
 
-        return $response->withRedirect($router->urlFor('get users'));
+        return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'));
     }
 
-    $params = [
-        'id' => $id,
-        'nickname' => $user['nickname'],
-        'email' => $user['email'],
-        'errors' => $errors
-    ];
-
-    return $this->get('renderer')->render($response->withStatus(422), 'users/new.phtml', $params);
+    return $response->withStatus(422);
 
 })->setName('update user');
 
 $app->delete('/users/{id}', function ($request, $response, $args) use ($router) {
     $id = $args['id'];
 
-    $users = json_decode($request->getCookieParam('users', json_encode([])), true);
-
-    $deleteUser = array_filter($users, function ($user) {
-        return $user['id'] !== $id;
-    });
-    $current = json_encode($deleteUser);
-    file_put_contents($file, $current);
+    $users = json_decode($request->getCookieParam('user', json_encode([])), true);
+    $newUsers = [];
+    foreach ($users as $user) {
+        if ($user['id'] === $id) {
+            continue;
+        }
+        $newUsers[] = $user;
+    }
+    $users = json_encode($newUsers);
 
     $this->get('flash')->addMessage('success', 'Users has been deleted');
-    return $response->withRedirect($router->urlFor('get users'));
+    return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'));
 })->setName('delete user');
 
 $app->get('/session', function ($request, $response) {

@@ -1,11 +1,4 @@
 <h1>Users</h1>
-<form action="/session" method="post">
-    <input type="hidden" name="_METHOD" value="DELETE">
-    <input type="submit" value="Sign Out">
-</form>
-<form action = '/users/new' method = 'get'>
-        <input type = "submit" value = "Create User">
-</form>
 <?php if (count($flash) > 0) : ?>
     <?php foreach ($flash as $messages) : ?>
         <?php foreach ($messages as $message) : ?>
@@ -13,6 +6,13 @@
         <?php endforeach ?>
     <?php endforeach ?>
 <?php endif ?>
+<form action="/session" method="post">
+    <input type="hidden" name="_METHOD" value="DELETE">
+    <input type="submit" value="Sign Out">
+</form>
+<form action = '/users/new' method = 'get'>
+        <input type = "submit" value = "Create User">
+</form>
 <hr>
 <form action = '/users' method = 'get'>
     <input type = "search" name="term">
