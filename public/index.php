@@ -35,8 +35,8 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/users', function ($request, $response) {
     $flash = $this->get('flash')->getMessages();
-    $file = 'public/users.json';
-    $users = json_decode(file_get_contents($file), true);
+
+    $users = json_decode($request->getCookieParam('users', json_encode([])), true);
     $search = $request->getQueryParams('term');
 
     $filterUsers = collect($users)->filter(function ($user) use ($search) {
@@ -50,29 +50,22 @@ $app->get('/users', function ($request, $response) {
 
 $app->post('/users', function ($request, $response) use ($router) {
     $user = $request->getParsedBodyParam('user');
-    $id = uniqid();
+    $user['id'] = uniqid();
     $validator = new Validator();
     $errors = $validator->validate($user);
 
     if (count($errors) === 0) {
-        $params = ['nickname' => $user['nickname'], 'email' => $user['email'], 'id' => $id];
-
-        $file = 'public/users.json';
-
-        $current = json_decode(file_get_contents($file), true);
-        $current[] = $params;
-        $current = json_encode($current);
-        file_put_contents($file, $current);
+        $users = json_decode($request->getCookieParam('users', json_encode([])), true);
+        $users[] = $user;
+        $users = json_encode($users);
 
         $this->get('flash')->addMessage('success', 'User was added successfully');
 
-        return $response->withRedirect($router->urlFor('get users'), 302);
+        return $response->withHeader('Set-Cookie', "users={$users}")->withRedirect($router->urlFor('get users'), 302);
     }
 
     $params = [
-        'id' => $id,
-        'nickname' => $user['nickname'],
-        'email' => $user['email'],
+        'user' => $user, 
         'errors' => $errors
     ];
 
@@ -80,6 +73,7 @@ $app->post('/users', function ($request, $response) use ($router) {
 })->setName('users');
 
 $app->get('/users/new', function ($request, $response) {
+
     $params = [
         'user' => ['nickname' => '', 'email' => ''],
         'errors' => []
@@ -89,9 +83,9 @@ $app->get('/users/new', function ($request, $response) {
 })->setName('new user');
 
 
-$app->get('/users/{id}', function ($request, $response, $args) {
-    $file = 'public/users.json';
-    $users = json_decode(file_get_contents($file), true);
+$app->get('/users/{id}', function ($request, $response, $args) {    
+    $users = json_decode($request->getCookieParam('users', json_encode([])), true);
+
     $findUser = array_map(function ($user) use ($args, $response) {
         if ($user['id'] === $args['id']) {
             $params = ['id' => $user['id'], 'nickname' => $user['nickname'], 'email' => $user['email']];
@@ -105,7 +99,7 @@ $app->get('/users/{id}', function ($request, $response, $args) {
 $app->get('/users/{id}/edit', function ($request, $response, $args) {
     $id = $args['id'];
 
-    $users = json_decode(file_get_contents('public/users.json'), true);
+    $users = json_decode($request->getCookieParam('user', json_encode([])), true);
 
     $findUser = array_map(function ($user) use ($args, $response) {
         if ($user['id'] === $args['id']) {
@@ -124,10 +118,7 @@ $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
     $errors = $validator->validate($updateUser);
 
     if (count($errors) === 0) {
-
-        $file = 'public/users.json';
-
-        $users = json_decode(file_get_contents($file), true);
+        $users = json_decode($request->getCookieParam('user', json_encode([])), true);
         $currentnew = array_map(function ($user) use ($updateUser) {
             if ($user['id'] === $updateUser['id']) {
                 $user['nickname'] = $updateUser['nickname'];
@@ -157,15 +148,48 @@ $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
 $app->delete('/users/{id}', function ($request, $response, $args) use ($router) {
     $id = $args['id'];
 
-    $file = 'public/users.json';
-    $users = json_decode(file_get_contents($file), true);
+    $users = json_decode($request->getCookieParam('user', json_encode([])), true);
 
-    $deleteUser = array_filter($users, fn($user) => $user['id'] != $id);
+    $deleteUser = array_filter($users, function ($user) {
+        return $user['id'] !== $id;
+    });
     $current = json_encode($deleteUser);
     file_put_contents($file, $current);
 
     $this->get('flash')->addMessage('success', 'Users has been deleted');
     return $response->withRedirect($router->urlFor('get users'));
 })->setName('delete user');
+
+$app->get('/session', function ($request, $response) {
+    $flash = $this->get('flash')->getMessages();
+
+    $params = ['flash' => $flash, 'session' => $_SESSION];
+    return $this->get('renderer')->render($response, 'users/authentication.phtml', $params);
+})->setName('session');
+
+$app->post("/session", function ($request, $response) {
+    $userData = $request->getParsedBodyParam('user');
+    $emailData = $userData['email'];
+
+    $users = json_decode($request->getCookieParam('users', json_encode([])), true);
+
+    foreach ($users as $user) {
+        if ($user['email'] === $emailData) {
+            $_SESSION['email'] = $emailData;
+        }
+    }
+
+    if (!isset($_SESSION['email'])) {
+        $this->get('flash')->addMessage('false', 'Wrong password or name');
+    }
+
+    return $response->withRedirect('/session');
+});
+
+$app->delete('/session', function ($request, $response) {
+    $_SESSION = [];
+    session_destroy();
+    return $response->withRedirect('/session');
+})->setName('session');
 
 $app->run();

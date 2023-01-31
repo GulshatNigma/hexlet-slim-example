@@ -18,6 +18,9 @@
 Nicknames: 
 <ul>
     <?php foreach($users as $user): ?>
-        <li><?php echo(htmlspecialchars($user['nickname']))?></li>
+        <li><?= htmlspecialchars($user['nickname'])?></li>
     <?php endforeach ?>
 </ul>
+<form action="/session" method="post">
+    <input type="submit" value="Sign In">
+</form>

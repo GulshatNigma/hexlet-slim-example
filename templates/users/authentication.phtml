@@ -1,0 +1,21 @@
+<h1>Login</h1>
+<br>
+<?php if (count($flash) > 0) : ?>
+    <?php foreach ($flash as $messages) : ?>
+        <?php foreach ($messages as $message) : ?>
+            <h3><?= $message ?></h3>
+        <?php endforeach ?>
+    <?php endforeach ?>
+<?php endif ?>
+<?php if (isset($session['email'])) :?>
+        <?= $session['email'] ?>
+        <form action="/session" method="post">
+            <input type="hidden" name="_METHOD" value="DELETE">
+            <input type="submit" value="Sign Out">
+        </form>
+<?php else :?>
+        <form action="/session" method="post">
+            <input type="email" name="user[email]" value="">
+            <input type="submit" value="Sign In">
+        </form>
+<?php endif; ?>

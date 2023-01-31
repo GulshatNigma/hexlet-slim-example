@@ -1,11 +1,10 @@
 <h1>New User</h1>
-
 <hr>
 <form action="/users" method="post">
     <div>
         <label>
             Nickname:
-            <input type="text" name="user[nickname]" value="<?= htmlspecialchars($course['nickname']) ?>">
+            <input type="text" name="user[nickname]" value="<?= htmlspecialchars($user['nickname']) ?>">
         </label>
         <?php if (isset($errors['nickname'])): ?>
             <div><?= $errors['nickname'] ?></div>
@@ -14,7 +13,7 @@
     <div>
         <label>
             Email:
-            <input type="email" name="user[email]" value="<?= htmlspecialchars($course['email']) ?>">
+            <input type="email" name="user[email]" value="<?= htmlspecialchars($user['email']) ?>">
         </label>
         <?php if (isset($errors['email'])): ?>
             <div><?= $errors['email'] ?></div>
