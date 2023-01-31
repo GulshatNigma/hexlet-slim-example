@@ -1,4 +1,8 @@
 <h1>Users</h1>
+<form action="/session" method="post">
+    <input type="hidden" name="_METHOD" value="DELETE">
+    <input type="submit" value="Sign Out">
+</form>
 <form action = '/users/new' method = 'get'>
         <input type = "submit" value = "Create User">
 </form>
@@ -18,9 +22,7 @@
 Nicknames: 
 <ul>
     <?php foreach($users as $user): ?>
-        <li><?= htmlspecialchars($user['nickname'])?></li>
+        <li><a href="/users/<?= htmlspecialchars($user['id'])?>"><?= htmlspecialchars($user['nickname'])?></a>
+        <a href="/users/<?= htmlspecialchars($user['id'])?>/edit"><input type="submit" value="Edit"></li>
     <?php endforeach ?>
 </ul>
-<form action="/session" method="post">
-    <input type="submit" value="Sign In">
-</form>
