@@ -32,6 +32,38 @@ $app->get('/', function ($request, $response) {
     return $response;
 });
 
+$app->get('/session', function ($request, $response) {
+    $flash = $this->get('flash')->getMessages();
+
+    $params = ['flash' => $flash, 'session' => $_SESSION, 'user' => ['email' => ""]];
+    return $this->get('renderer')->render($response, 'users/authentication.phtml', $params);
+})->setName('session');
+
+$app->post("/session", function ($request, $response) {
+    $userData = $request->getParsedBodyParam('user');
+    $emailData = $userData['email'];
+
+    $users = json_decode($request->getCookieParam('user', json_encode([])), true);
+
+    foreach ($users as $user) {
+        if ($user['email'] === $emailData) {
+            $_SESSION['email'] = $emailData;
+        }
+    }
+
+    if (!isset($_SESSION['email'])) {
+        $this->get('flash')->addMessage('false', 'Wrong password or name');
+        return $response->withRedirect('/session');
+    }
+
+    return $response->withRedirect('/users');
+});
+
+$app->delete('/session', function ($request, $response) {
+    $_SESSION = [];
+    session_destroy();
+    return $response->withRedirect('/session');
+})->setName('session');
 
 $app->get('/users', function ($request, $response) {
     $flash = $this->get('flash')->getMessages();
@@ -155,38 +187,5 @@ $app->delete('/users/{id}', function ($request, $response, $args) use ($router) 
     $this->get('flash')->addMessage('success', 'Users has been deleted');
     return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'));
 })->setName('delete user');
-
-$app->get('/session', function ($request, $response) {
-    $flash = $this->get('flash')->getMessages();
-
-    $params = ['flash' => $flash, 'session' => $_SESSION, 'user' => ['email' => ""]];
-    return $this->get('renderer')->render($response, 'users/authentication.phtml', $params);
-})->setName('session');
-
-$app->post("/session", function ($request, $response) {
-    $userData = $request->getParsedBodyParam('user');
-    $emailData = $userData['email'];
-
-    $users = json_decode($request->getCookieParam('user', json_encode([])), true);
-
-    foreach ($users as $user) {
-        if ($user['email'] === $emailData) {
-            $_SESSION['email'] = $emailData;
-        }
-    }
-
-    if (!isset($_SESSION['email'])) {
-        $this->get('flash')->addMessage('false', 'Wrong password or name');
-        return $response->withRedirect('/session');
-    }
-
-    return $response->withRedirect('/users');
-});
-
-$app->delete('/session', function ($request, $response) {
-    $_SESSION = [];
-    session_destroy();
-    return $response->withRedirect('/session');
-})->setName('session');
 
 $app->run();
