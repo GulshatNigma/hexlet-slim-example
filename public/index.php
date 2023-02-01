@@ -56,7 +56,7 @@ $app->post("/session", function ($request, $response) {
         return $response->withRedirect('/session');
     }
 
-    return $response->withRedirect('/users');
+    return $response->withRedirect('/session');
 });
 
 $app->delete('/session', function ($request, $response) {
@@ -135,14 +135,15 @@ $app->get('/users/{id}/edit', function ($request, $response, $args) {
 
     $users = json_decode($request->getCookieParam('user', json_encode([])), true);
 
-    $findUser = array_map(function ($user) use ($args, $response) {
+    foreach ($users as $user) {
         if ($user['id'] === $args['id']) {
-            $params = ['id' => $user['id'], 'nickname' => $user['nickname'], 'email' => $user['email']];
+            $params = ['user' => $user, 'id' => $user['id']];
             return $this->get('renderer')->render($response, 'users/edit.phtml', $params);
         }
-    }, $users);
+    }
 
     return $response->withStatus(404);
+
 })->setName('update user form');
 
 $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
