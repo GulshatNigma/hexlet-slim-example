@@ -95,7 +95,7 @@ $app->post('/users', function ($request, $response) use ($router) {
 
         $this->get('flash')->addMessage('success', 'User was added successfully');
 
-        return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'), 302);
+        return $response->withHeader('Set-Cookie', "user={$users};Path=/")->withRedirect($router->urlFor('get users'), 302);
     }
 
     $params = [
@@ -165,7 +165,7 @@ $app->patch('/users/{id}', function ($request, $response, $args) use ($router) {
 
         $this->get('flash')->addMessage('success', 'User was update successfully');
 
-        return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'));
+        return $response->withHeader('Set-Cookie', "user={$users};Path=/")->withRedirect($router->urlFor('get users'));
     }
 
     return $response->withStatus(422);
@@ -186,7 +186,7 @@ $app->delete('/users/{id}', function ($request, $response, $args) use ($router) 
     $users = json_encode($newUsers);
 
     $this->get('flash')->addMessage('success', 'Users has been deleted');
-    return $response->withHeader('Set-Cookie', "user={$users}")->withRedirect($router->urlFor('get users'));
+    return $response->withHeader('Set-Cookie', "user={$users};Path=/")->withRedirect($router->urlFor('get users'));
 })->setName('delete user');
 
 $app->run();
